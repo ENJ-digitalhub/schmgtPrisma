@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. TEACHER [cite: 1]
+model Teacher {
+  teacher_id Int            @id @default(autoincrement())
+  name       String
+  email      String?        @unique
+  phone      String?
+  hire_date  DateTime?
+  sessions   ClassSession[]
+}
+
+// 2. STUDENT [cite: 2]
+model Student {
+  student_id    Int              @id @default(autoincrement())
+  name          String
+  date_of_birth DateTime?
+  gender        String?
+  address       String?
+  parents       StudentParent[]
+  attendances   Attendance[]
+  grades        Grade[]
+  payments      FeePayment[]
+}
+
+// 3. PARENT [cite: 3]
+model Parent {
+  parent_id Int             @id @default(autoincrement())
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  students  StudentParent[]
+}
+
+// 4. STUDENT_PARENT (Many-to-Many Join Table) 
+model StudentParent {
+  student_id Int
+  parent_id  Int
+  student    Student @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  parent     Parent  @relation(fields: [parent_id], references: [parent_id], onDelete: Cascade)
+
+  @@id([student_id, parent_id])
+}
+
+// 5. SUBJECT [cite: 5]
+model Subject {
+  subject_id Int            @id @default(autoincrement())
+  name       String
+  code       String         @unique
+  sessions   ClassSession[]
+  grades     Grade[]
+}
+
+// 6. CLASS [cite: 6]
+model Class {
+  class_id Int            @id @default(autoincrement())
+  name     String
+  sessions ClassSession[]
+}
+
+// 7. CLASS SESSION [cite: 7]
+model ClassSession {
+  session_id  Int          @id @default(autoincrement())
+  teacher_id  Int?
+  teacher     Teacher?     @relation(fields: [teacher_id], references: [teacher_id])
+  subject_id  Int?
+  subject     Subject?     @relation(fields: [subject_id], references: [subject_id])
+  class_id    Int?
+  class       Class?       @relation(fields: [class_id], references: [class_id])
+  term        String?
+  session_year String?
+  attendances Attendance[]
+  grades      Grade[]
+}
+
+// 8. ATTENDANCE [cite: 8]
+model Attendance {
+  attendance_id Int          @id @default(autoincrement())
+  student_id    Int
+  student       Student      @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  session_id    Int
+  session       ClassSession @relation(fields: [session_id], references: [session_id], onDelete: Cascade)
+  date          DateTime
+  status        String       // Should be 'Present' or 'Absent'
+}
+
+// 9. GRADE 
+model Grade {
+  grade_id    Int          @id @default(autoincrement())
+  student_id  Int
+  student     Student      @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  session_id  Int
+  session     ClassSession @relation(fields: [session_id], references: [session_id], onDelete: Cascade)
+  subject_id  Int
+  subject     Subject      @relation(fields: [subject_id], references: [subject_id])
+  score       Decimal?     @db.Decimal(5, 2)
+  grade_letter String?
+}
+
+// 10. FEE PAYMENT [cite: 10]
+model FeePayment {
+  payment_id   Int      @id @default(autoincrement())
+  student_id   Int
+  student      Student  @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  amount       Decimal  @db.Decimal(10, 2)
+  payment_date DateTime?
+  term         String?
+  session_year String?
+}
+
+// 11. ADMIN [cite: 11]
+model Admin {
+  admin_id    Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  password    String
+  role        String   @default("Admin")
+  school_name String   @unique
+  created_at  DateTime @default(now())
+}
