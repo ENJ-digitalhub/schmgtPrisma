@@ -1,4 +1,6 @@
-export function apiResponse({ success = true, message, data = null }) {
+export function apiResponse({ success = true, 
+                              message, 
+                              data = null }) {
   return {
     success,
     message,
