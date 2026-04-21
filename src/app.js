@@ -9,14 +9,9 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'School management API is running',
-  });
-});
 
-app.use('/api/v1/schools', schoolRouter);
+
+app.use('/api/schools', schoolRouter);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -7,122 +7,191 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 1. TEACHER [cite: 1]
-model Teacher {
-  teacher_id Int            @id @default(autoincrement())
-  name       String
-  email      String?        @unique
-  phone      String?
-  hire_date  DateTime?
-  sessions   ClassSession[]
+//
+// 🔐 USER (AUTH CORE)
+//
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  password     String
+  role         Role
+  refreshToken String?
+
+  admin        Admin?
+  teacher      Teacher?
+  student      Student?
+  parent       Parent?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
-// 2. STUDENT [cite: 2]
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+//
+// 👑 ADMIN
+//
+model Admin {
+  id          Int   @id @default(autoincrement())
+  userId      Int   @unique
+
+  user        User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  school_name String
+}
+
+//
+// 👨‍🏫 TEACHER
+//
+model Teacher {
+  id       Int   @id @default(autoincrement())
+  userId   Int   @unique
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  phone    String?
+  sessions ClassSession[]
+}
+
+//
+// 🎓 STUDENT
+//
 model Student {
-  student_id    Int              @id @default(autoincrement())
-  name          String
+  id            Int   @id @default(autoincrement())
+  userId        Int   @unique
+
+  user          User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   date_of_birth DateTime?
   gender        String?
   address       String?
+
   parents       StudentParent[]
   attendances   Attendance[]
   grades        Grade[]
   payments      FeePayment[]
 }
 
-// 3. PARENT [cite: 3]
+//
+// 👪 PARENT
+//
 model Parent {
-  parent_id Int             @id @default(autoincrement())
-  name      String
-  phone     String?
-  email     String?
-  address   String?
-  students  StudentParent[]
+  id       Int   @id @default(autoincrement())
+  userId   Int   @unique
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  phone    String?
+  students StudentParent[]
 }
 
-// 4. STUDENT_PARENT (Many-to-Many Join Table) 
+//
+// 🔗 STUDENT ↔ PARENT (MANY TO MANY)
+//
 model StudentParent {
-  student_id Int
-  parent_id  Int
-  student    Student @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
-  parent     Parent  @relation(fields: [parent_id], references: [parent_id], onDelete: Cascade)
+  studentId Int
+  parentId  Int
 
-  @@id([student_id, parent_id])
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  parent    Parent  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, parentId])
 }
 
-// 5. SUBJECT [cite: 5]
+//
+// 📚 SUBJECT
+//
 model Subject {
-  subject_id Int            @id @default(autoincrement())
-  name       String
-  code       String         @unique
-  sessions   ClassSession[]
-  grades     Grade[]
+  id       Int   @id @default(autoincrement())
+  name     String
+  code     String @unique
+
+  sessions ClassSession[]
+  grades   Grade[]
 }
 
-// 6. CLASS [cite: 6]
+//
+// 🏫 CLASS
+//
 model Class {
-  class_id Int            @id @default(autoincrement())
+  id       Int   @id @default(autoincrement())
   name     String
+
   sessions ClassSession[]
 }
 
-// 7. CLASS SESSION [cite: 7]
+//
+// 📅 CLASS SESSION
+//
 model ClassSession {
-  session_id  Int          @id @default(autoincrement())
-  teacher_id  Int?
-  teacher     Teacher?     @relation(fields: [teacher_id], references: [teacher_id])
-  subject_id  Int?
-  subject     Subject?     @relation(fields: [subject_id], references: [subject_id])
-  class_id    Int?
-  class       Class?       @relation(fields: [class_id], references: [class_id])
-  term        String?
-  session_year String?
-  attendances Attendance[]
-  grades      Grade[]
-}
+  id           Int   @id @default(autoincrement())
 
-// 8. ATTENDANCE [cite: 8]
-model Attendance {
-  attendance_id Int          @id @default(autoincrement())
-  student_id    Int
-  student       Student      @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
-  session_id    Int
-  session       ClassSession @relation(fields: [session_id], references: [session_id], onDelete: Cascade)
-  date          DateTime
-  status        String       // Should be 'Present' or 'Absent'
-}
+  teacherId    Int?
+  subjectId    Int?
+  classId      Int?
 
-// 9. GRADE 
-model Grade {
-  grade_id    Int          @id @default(autoincrement())
-  student_id  Int
-  student     Student      @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
-  session_id  Int
-  session     ClassSession @relation(fields: [session_id], references: [session_id], onDelete: Cascade)
-  subject_id  Int
-  subject     Subject      @relation(fields: [subject_id], references: [subject_id])
-  score       Decimal?     @db.Decimal(5, 2)
-  grade_letter String?
-}
+  teacher      Teacher? @relation(fields: [teacherId], references: [id])
+  subject      Subject? @relation(fields: [subjectId], references: [id])
+  class        Class?   @relation(fields: [classId], references: [id])
 
-// 10. FEE PAYMENT [cite: 10]
-model FeePayment {
-  payment_id   Int      @id @default(autoincrement())
-  student_id   Int
-  student      Student  @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
-  amount       Decimal  @db.Decimal(10, 2)
-  payment_date DateTime?
   term         String?
-  session_year String?
+  sessionYear  String?
+
+  attendances  Attendance[]
+  grades       Grade[]
 }
 
-// 11. ADMIN [cite: 11]
-model Admin {
-  admin_id    Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  password    String
-  role        String   @default("Admin")
-  school_name String   @unique
-  created_at  DateTime @default(now())
+//
+// 🧾 ATTENDANCE
+//
+model Attendance {
+  id          Int   @id @default(autoincrement())
+
+  studentId   Int
+  sessionId   Int
+
+  student     Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session     ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  date        DateTime
+  status      String
+}
+
+//
+// 🧮 GRADE
+//
+model Grade {
+  id            Int   @id @default(autoincrement())
+
+  studentId     Int
+  sessionId     Int
+  subjectId     Int
+
+  student       Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session       ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  subject       Subject      @relation(fields: [subjectId], references: [id])
+
+  score         Decimal? @db.Decimal(5, 2)
+  gradeLetter   String?
+}
+
+//
+// 💰 FEE PAYMENT
+//
+model FeePayment {
+  id           Int   @id @default(autoincrement())
+
+  studentId    Int
+  student      Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  amount       Decimal @db.Decimal(10, 2)
+  paymentDate  DateTime?
+  term         String?
+  sessionYear  String?
 }

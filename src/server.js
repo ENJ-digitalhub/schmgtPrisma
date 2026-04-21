@@ -20,6 +20,6 @@ const server = http.createServer(app);
 
 
 
-server.listen(2333, () => {
+server.listen(env.port, () => {
   console.log(`------------------------------------\nServer is running on http://localhost:${env.port}\n------------------------------------`);
 });

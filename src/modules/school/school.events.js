@@ -1,3 +1,4 @@
 export const SCHOOL_EVENTS = {
-  CREATED: 'school created',
+  CREATED: 'school.created',
 };
+   
