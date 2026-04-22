@@ -1,7 +1,7 @@
 {
   "name": "schmgtprisma",
   "version": "1.0.0",
-  "description": "",
+  "description": "`schmgtPrisma` is a backend school management project built with `Node.js`, `Express`, `Prisma`, and `PostgreSQL`.",
   "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -19,6 +19,21 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "nodemon": "^3.1.14",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "tailwind-scrollbar-hide": "^4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ENJ-digitalhub/schmgtPrisma.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ENJ-digitalhub/schmgtPrisma/issues"
+  },
+  "homepage": "https://github.com/ENJ-digitalhub/schmgtPrisma#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.4",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.4"
   }
 }
