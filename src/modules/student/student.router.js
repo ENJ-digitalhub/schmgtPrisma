@@ -1,12 +1,9 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   createStudentController,
   listStudentsController,
-} from "./student.controller.js";
-import {
-  authMiddleware,
-  permit,
-} from "../../middlewares/auth.middleware.js";
+} from './student.controller.js';
+import { authMiddleware, permit } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
 
@@ -77,7 +74,12 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get("/", authMiddleware, permit("ADMIN", "TEACHER"), listStudentsController);
-router.post("/", authMiddleware, permit("ADMIN"), createStudentController);
+router.get(
+  '/',
+  authMiddleware,
+  permit('ADMIN', 'TEACHER'),
+  listStudentsController
+);
+router.post('/', authMiddleware, permit('ADMIN'), createStudentController);
 
 export default router;

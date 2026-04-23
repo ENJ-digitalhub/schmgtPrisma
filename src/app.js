@@ -33,6 +33,7 @@ mountApiDocs(app);
  *             schema:
  *               $ref: '#/components/schemas/HealthResponse'
  */
+
 app.get('/health', (req, res) => {
   res.json({
     success: true,

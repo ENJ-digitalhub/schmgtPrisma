@@ -1,5 +1,5 @@
-import { apiResponse } from "../utils/apiResponse.js";
-import { verifyAccessToken } from "../lib/jwt.js";
+import { apiResponse } from '../utils/apiResponse.js';
+import { verifyAccessToken } from '../lib/jwt.js';
 
 /**
  * Extract an access token from cookies or the Authorization header.
@@ -14,7 +14,7 @@ function getTokenFromRequest(req) {
     return req.cookies.accessToken;
   }
 
-  if (authHeader?.startsWith("Bearer ")) {
+  if (authHeader?.startsWith('Bearer ')) {
     return authHeader.slice(7);
   }
 
@@ -36,7 +36,7 @@ export function authMiddleware(req, res, next) {
     return res.status(401).json(
       apiResponse({
         success: false,
-        message: "Authentication required",
+        message: 'Authentication required',
       })
     );
   }
@@ -48,7 +48,7 @@ export function authMiddleware(req, res, next) {
     return res.status(401).json(
       apiResponse({
         success: false,
-        message: "Invalid or expired access token",
+        message: 'Invalid or expired access token',
       })
     );
   }
@@ -66,7 +66,7 @@ export function permit(...roles) {
       return res.status(401).json(
         apiResponse({
           success: false,
-          message: "Authentication required",
+          message: 'Authentication required',
         })
       );
     }
@@ -75,7 +75,7 @@ export function permit(...roles) {
       return res.status(403).json(
         apiResponse({
           success: false,
-          message: "You do not have permission to perform this action",
+          message: 'You do not have permission to perform this action',
         })
       );
     }

@@ -1,19 +1,43 @@
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Page Title</title>
-    <link rel='stylesheet' href='main.css'>
-</head>
-<body>
-    <h1>Sign Up</h1>
-    <form id='signUpForm'>
-        <input type='email' id='email' placeholder='Email' required>
-        <input type='password' id='password' placeholder='Password' required>
-        <input type='text' id='name' placeholder='Name' required>
-        <button type='submit'>Sign Up</button>
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <header>
+      <h2>brand Name</h2>
+      <form action="" id="searchForm">
+        <input
+          placeholder="search feature"
+          itemid="search"
+          type="search"
+          name=""
+          id=""
+        />
+      </form>
+    </header>
+    <form id="signUpForm">
+      <h1>Login</h1>
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <input type="text" id="role" placeholder="role" required />
+      <div>
+        <!-- <input type="submit" value="signin with your account"> -->
+        <select name="role" id="role" name="role">
+          <option disabled value="">select role</option>
+          <option value="" style="color: grey">select role:</option>
+          <option value="">Admin</option>
+          <option value="">Teacher</option>
+          <option value="">Student</option>
+          <option value="">Parent</option>
+        </select>
+        <span style="color: red">...foregot password</span>
+      </div>
+      <input id="submit" type="submit" Sign Up />
     </form>
-    <script src='../'></script>
-</body>
+    <script src="../"></script>
+  </body>
 </html>
