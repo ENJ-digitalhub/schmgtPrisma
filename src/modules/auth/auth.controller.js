@@ -1,4 +1,5 @@
 import {
+  getCurrentUser,
   register,
   login,
   refreshToken,
@@ -71,7 +72,7 @@ export const loginController = asyncHandler(async (req, res) => {
 });
 
 /**
- * REFRESH TOKEN
+ * 
  */
 export const refreshController = asyncHandler(async (req, res) => {
   const token = req.cookies.refreshToken;
@@ -104,6 +105,17 @@ export const logoutController = asyncHandler(async (req, res) => {
   res.json(
     apiResponse({
       message: "Logged out successfully",
+    })
+  );
+});
+
+export const currentUserController = asyncHandler(async (req, res) => {
+  const user = await getCurrentUser(req.user.id);
+
+  res.json(
+    apiResponse({
+      message: "Current user fetched successfully",
+      data: user,
     })
   );
 });

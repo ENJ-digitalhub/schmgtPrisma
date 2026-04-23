@@ -1,13 +1,21 @@
 {
   "name": "schmgtprisma",
   "version": "1.0.0",
-  "description": "",
+  "description": "Modular school management system backend built with Express, Prisma, PostgreSQL, and JSDoc-powered API documentation.",
   "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon ./src/server.js"
+    "dev": "nodemon ./src/server.js",
+    "docs:json": "node ./src/docs/print-swagger.js"
   },
-  "keywords": [],
+  "keywords": [
+    "school-management",
+    "express",
+    "prisma",
+    "postgresql",
+    "swagger",
+    "jsdoc"
+  ],
   "author": "",
   "license": "ISC",
   "type": "module",
@@ -19,6 +27,11 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "nodemon": "^3.1.14",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.4"
   }
 }

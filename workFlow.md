@@ -1,581 +1,432 @@
-<div style="background:#050505; color:#f5f5f5; padding:32px; border-radius:20px; font-family:Segoe UI, Helvetica, Arial, sans-serif; line-height:1.7;">
-
 # Workflow Guide
 
-<p style="font-size:16px; color:#d4d4d4;">
-This document explains the intended workflow behind the proposed folder structure for this project. The goal of the structure is not just to arrange files neatly, but to create a predictable path for requests, business logic, database access, and event-driven side effects.
-</p>
+This document describes how the entire project should be implemented and maintained so that a developer can always tell:
 
----
+- where a new feature belongs
+- which layer should own the logic
+- how modules should interact
+- how authentication should be applied
+- how documentation should be kept in sync with the code
 
-## Overview
+## Architecture Principles
 
-The structure is designed around <strong>features</strong>, not just file types.
+The codebase is organized by feature, not by technical layer alone.
 
-That means each major business area, such as <code>school</code>, <code>student</code>, <code>teacher</code>, or <code>auth</code>, owns its own files inside a dedicated module folder.
+Each business area owns its own:
 
-Instead of putting all controllers in one place, all services in another place, and all routes in another place, each feature keeps its related pieces together.
+- router
+- controller
+- service
+- repository
+- events
+- listeners
 
-This makes the codebase easier to:
+That structure reduces file sprawl and keeps related logic together.
 
-- understand
-- extend
-- debug
-- scale
-- hand off to another developer later
+## Application Flow
 
----
-
-## Suggested Structure
-
-```text
-schmgtPrisma/
-  prisma/
-    migrations/
-    schema.prisma
-
-  src/
-    app.js
-    server.js
-
-    config/
-      env.js
-
-    lib/
-      prisma.js
-      eventBus.js
-
-    middlewares/
-      errorHandler.js
-      notFound.js
-      auth.middleware.js
-
-    modules/
-      school/
-        school.router.js
-        school.controller.js
-        school.service.js
-        school.repository.js
-        school.listeners.js
-        school.events.js
-
-      student/
-        student.router.js
-        student.controller.js
-        student.service.js
-        student.repository.js
-        student.listeners.js
-        student.events.js
-
-      teacher/
-        teacher.router.js
-        teacher.controller.js
-        teacher.service.js
-        teacher.repository.js
-        teacher.listeners.js
-        teacher.events.js
-
-      auth/
-        auth.router.js
-        auth.controller.js
-        auth.service.js
-        auth.repository.js
-        auth.listeners.js
-        auth.events.js
-
-    utils/
-      apiResponse.js
-      asyncHandler.js
-
-  .env
-  .gitignore
-  package.json
-  package-lock.json
-  prisma.config.ts
-```
-
----
-
-## Core Idea
-
-The workflow is built on three main paths:
-
-### 1. HTTP Request Flow
-This handles incoming API requests from the client.
-
-### 2. Business Logic Flow
-This handles decisions, rules, and application behavior.
-
-### 3. Event Flow
-This handles side effects after important actions happen.
-
-Each path has a clear responsibility so that no one file becomes overloaded.
-
----
-
-## Request Lifecycle
-
-### ⚫ 1. `server.js` starts the application
-
-This is the boot file for the Node server.
-
-Its job is to:
-
-- create the HTTP server
-- choose the port
-- start listening for requests
-
-It should stay very small.
-
-It is not supposed to contain business logic, route definitions, or database code.
-
-### ⚫ 2. `app.js` builds the Express application
-
-This file prepares the app itself.
-
-Its job is to:
-
-- register middleware
-- enable JSON parsing
-- enable cookie parsing
-- mount module routers
-- plug in not-found and error handlers
-
-This is the assembly point of the app.
-
-Think of `server.js` as the switch that turns the machine on, and `app.js` as the place where the machine is assembled.
-
-### ⚫ 3. `*.router.js` defines endpoints
-
-Example:
-
-- `school.router.js`
-- `student.router.js`
-- `auth.router.js`
-
-The router's responsibility is to connect a URL and HTTP method to the correct controller function.
-
-Example:
-
-```js
-router.post('/schools', createSchool);
-router.get('/schools/:id', getSchoolById);
-```
-
-The router should stay simple.
-
-It should not contain:
-
-- business rules
-- Prisma queries
-- event logic
-
-Its job is only to map requests to handlers.
-
-### ⚫ 4. `*.controller.js` handles the request and response
-
-The controller sits between Express and your application logic.
-
-Its job is to:
-
-- read `req.params`, `req.body`, `req.query`, and `req.user`
-- call the correct service method
-- return the final HTTP response
-- forward errors to middleware
-
-The controller should know about Express.
-
-That means it can work with `req`, `res`, and `next`.
-
-But it should not be where deep business decisions are made.
-
-A controller should mostly coordinate, not think.
-
-### ⚫ 5. `*.service.js` contains business logic
-
-This is one of the most important layers.
-
-The service decides how the feature behaves.
-
-It answers questions like:
-
-- Can this school be created?
-- Does this user have permission?
-- Should an event be emitted after the record is created?
-- Should two repository calls happen in sequence?
-- Should extra derived data be prepared before saving?
-
-The service should be the brain of the module.
-
-It should not care about:
-
-- Express response formatting
-- raw route definitions
-
-But it should care deeply about:
-
-- application rules
-- process orchestration
-- feature behavior
-
-### ⚫ 6. `*.repository.js` talks to Prisma
-
-The repository is the data-access layer.
-
-Its job is to:
-
-- create records
-- read records
-- update records
-- delete records
-- run queries with Prisma
-
-This layer should be focused on persistence.
-
-It should not decide policy or business meaning.
-
-For example, the repository should not decide whether a school is allowed to be created. It should only know how to create it once the service has already decided it should happen.
-
-### ⚫ 7. `lib/prisma.js` provides a shared Prisma client
-
-Instead of creating a new Prisma client inside every repository, this file centralizes it.
-
-That gives you:
-
-- one reusable connection point
-- cleaner imports
-- more consistent database access
-
-This helps the rest of the app stay uniform.
-
----
-
-## Event-Driven Workflow
-
-Since you mentioned that `listeners` will be used for Node `EventEmitter` functions, this becomes a second important workflow in the application.
-
-The event flow is meant for <strong>side effects</strong>.
-
-A side effect is something that should happen after an action is completed, but should not clutter the main request flow.
-
-Examples:
-
-- after a school is created, log the action
-- after a student is enrolled, notify another part of the app
-- after a payment is recorded, trigger a receipt process
-- after an admin is created, emit an onboarding event
-
-### ⚫ Event flow pattern
-
-```text
-service -> eventBus -> listeners
-```
-
-### ⚫ `lib/eventBus.js`
-
-This file contains the shared `EventEmitter` instance.
-
-Its purpose is to act as the central event channel for the app.
-
-Instead of every module creating its own isolated emitter, the project can use one event bus so listeners across modules can react to application events consistently.
-
-### ⚫ `*.events.js`
-
-This file can store event names and helper functions.
-
-Example purpose:
-
-- keep event names consistent
-- avoid repeating string literals everywhere
-- make refactoring easier later
-
-Example:
-
-```js
-export const SCHOOL_EVENTS = {
-  CREATED: 'school.created',
-  UPDATED: 'school.updated',
-};
-```
-
-This is useful because raw strings scattered across files become hard to maintain.
-
-### ⚫ `*.listeners.js`
-
-This file registers handlers for events that belong to the module.
-
-Its job is to say:
-
-- when event `school.created` happens, run this logic
-- when event `student.enrolled` happens, run this logic
-
-Listeners are best used for:
-
-- logging
-- notifications
-- audit trails
-- analytics
-- decoupled follow-up actions
-
-They should not replace the normal service layer.
-
-That is important.
-
-Your main business flow should still be handled through the request path:
-
-`router -> controller -> service -> repository`
-
-Listeners should support that flow, not compete with it.
-
----
-
-## Why Feature Modules Are Better Here
-
-In this kind of app, business areas are naturally separate.
-
-For example:
-
-- `school` manages school-level data
-- `student` manages student records
-- `teacher` manages teacher records
-- `auth` manages login, tokens, and access control
-
-If all routers, controllers, services, and repositories were stored in global folders, the codebase would quickly become harder to scan.
-
-Feature modules solve that by keeping everything related to one feature together.
-
-That means when you work on student enrollment, you mostly stay inside the `student` module. When you work on school registration, you mostly stay inside the `school` module.
-
-This reduces mental switching.
-
-It also makes the project easier to grow.
-
----
-
-## Intended Responsibilities By Folder
-
-### 📁 `prisma/`
-
-This folder owns the database schema and migrations.
-
-Use it for:
-
-- Prisma schema definitions
-- migration history
-- database structure
-
-Do not use it for runtime business logic.
-
-### 📁 `src/config/`
-
-This folder is for app configuration.
-
-Use it for:
-
-- environment variable parsing
-- config validation
-- app-level settings
-
-### 📁 `src/lib/`
-
-This folder is for reusable infrastructure pieces shared by many modules.
-
-Use it for:
-
-- Prisma client setup
-- event bus setup
-- other core shared libraries
-
-### 📁 `src/middlewares/`
-
-This folder contains Express middleware.
-
-Use it for:
-
-- authentication checks
-- error handling
-- 404 handling
-- request shaping or protection
-
-### 📁 `src/modules/`
-
-This is the heart of the application.
-
-Each subfolder represents one domain feature.
-
-Every module should be internally consistent and contain only the pieces it actually needs.
-
-### 📁 `src/utils/`
-
-This folder is for small reusable helpers.
-
-Use it for:
-
-- async wrappers
-- common API response helpers
-- tiny formatting utilities
-
-Avoid letting `utils` become a dumping ground for unrelated logic.
-
----
-
-## The Intended Development Workflow
-
-When building a new feature, the intended workflow is:
-
-### ✅ Step 1: Define the feature
-
-Choose the feature that owns the behavior.
-
-Examples:
-
-- school creation belongs to `school`
-- login belongs to `auth`
-- student enrollment belongs to `student`
-
-### ✅ Step 2: Add the route
-
-Create the endpoint in the module's router.
-
-This answers:
-
-- what URL will be hit?
-- what HTTP method is used?
-
-### ✅ Step 3: Add the controller
-
-Read request data and call the service.
-
-This answers:
-
-- what data is coming from the request?
-- what service function should handle it?
-
-### ✅ Step 4: Add the service logic
-
-This is where the feature's actual rules are implemented.
-
-This answers:
-
-- what should happen?
-- in what order?
-- under what conditions?
-
-### ✅ Step 5: Add repository operations
-
-Write the Prisma queries needed for the feature.
-
-This answers:
-
-- what should be saved?
-- what should be fetched?
-- what should be updated?
-
-### ✅ Step 6: Emit events if needed
-
-If the completed action should trigger additional behavior, emit an event from the service.
-
-This answers:
-
-- does anything else need to happen after success?
-
-### ✅ Step 7: Register listeners
-
-Add listener logic for the event if the action has side effects.
-
-This answers:
-
-- what follow-up actions should happen after the main work is done?
-
----
-
-## Example End-To-End Scenario
-
-### Example: Create School
-
-#### 🌑 Request path
-
-1. Client sends `POST /schools`
-2. `school.router.js` maps the route
-3. `school.controller.js` reads `req.body`
-4. `school.service.js` validates the business operation
-5. `school.repository.js` saves the school with Prisma
-6. service emits `school.created`
-7. controller returns success response
-
-#### 🌑 Event path
-
-1. `eventBus` receives `school.created`
-2. `school.listeners.js` catches the event
-3. a side effect runs, such as:
-   - logging
-   - analytics
-   - audit creation
-   - sending a welcome notification
-
-This keeps the main request path clean while still allowing follow-up behavior.
-
----
-
-## What This Structure Protects You From
-
-This design helps prevent common backend problems such as:
-
-- controllers becoming too large
-- routes containing business logic
-- Prisma queries being scattered everywhere
-- repeated event names across the project
-- one giant `utils` folder carrying app logic
-- side effects cluttering the main request-response cycle
-
-In short, it creates boundaries.
-
-Those boundaries make the app easier to reason about.
-
----
-
-## Practical Rules To Follow
-
-To keep this structure healthy, the intended rules are:
-
-- keep controllers thin
-- keep services smart
-- keep repositories focused on data access
-- keep listeners for side effects
-- keep event names centralized
-- keep shared infrastructure in `lib`
-- keep each feature's files inside its own module
-
-If you follow those rules consistently, the codebase will stay easier to scale.
-
----
-
-## Final Summary
-
-The workflow behind this structure is intended to separate concerns without scattering feature code across the whole project.
-
-The application is meant to work in two connected layers:
-
-### 🚀 Main request flow
+The main runtime flow is:
 
 ```text
 server -> app -> router -> controller -> service -> repository -> prisma -> database
 ```
 
-### 🔔 Side-effect event flow
+The side-effect flow is:
 
 ```text
 service -> eventBus -> listeners
 ```
 
-This gives you:
+Use the first flow for the main business operation.
 
-- clearer feature ownership
-- easier maintenance
-- cleaner business logic
-- better scalability
-- a natural place for EventEmitter-based behavior
+Use the second flow only for follow-up work such as:
 
-If the app grows the way a school management system usually does, this structure should serve you well because it keeps growth organized by domain instead of letting everything pile up in shared global folders.
+- logs
+- analytics
+- audit records
+- notifications
 
-</div>
+## Layer Responsibilities
+
+### `server.js`
+
+Owns application startup only.
+
+It should:
+
+- create the HTTP server
+- import listener registration files
+- start listening on the configured port
+
+It should not contain route logic or business rules.
+
+### `app.js`
+
+Owns application assembly.
+
+It should:
+
+- register global middleware
+- enable JSON parsing
+- enable cookie parsing
+- mount Swagger docs
+- mount routers
+- register not-found handling
+- register error handling
+
+### `*.router.js`
+
+Owns endpoint definitions.
+
+It should:
+
+- map methods and paths to controllers
+- apply authentication middleware
+- apply role-based authorization where needed
+- contain OpenAPI JSDoc annotations for route documentation
+
+It should not contain database or business logic.
+
+### `*.controller.js`
+
+Owns request/response coordination.
+
+It should:
+
+- read request input
+- call the right service
+- return consistent API responses
+- avoid deep decision-making
+
+### `*.service.js`
+
+Owns business rules.
+
+It should:
+
+- validate business conditions
+- orchestrate multi-step operations
+- call repositories
+- call reusable auth helpers where appropriate
+- emit domain events after successful actions
+
+### `*.repository.js`
+
+Owns persistence logic.
+
+It should:
+
+- run Prisma queries
+- return data to the service layer
+- stay free from policy decisions
+
+### `*.events.js`
+
+Owns event names.
+
+It should define constants that prevent event-name duplication.
+
+### `*.listeners.js`
+
+Owns side-effect behavior.
+
+It should subscribe to domain events and run logic that does not belong in the critical request path.
+
+## Shared Infrastructure
+
+### `src/config/env.js`
+
+Centralizes environment configuration for:
+
+- `PORT`
+- `DATABASE_URL`
+- JWT secrets
+
+### `src/lib/prisma.js`
+
+Provides the shared Prisma client used across repositories.
+
+### `src/lib/jwt.js`
+
+Provides token helpers for:
+
+- access token signing
+- refresh token signing
+- access token verification
+- refresh token verification
+
+### `src/lib/eventBus.js`
+
+Provides the shared event emitter for the entire application.
+
+### `src/middlewares/auth.middleware.js`
+
+Provides:
+
+- `authMiddleware` for authentication
+- `permit(...roles)` for authorization
+
+Routes that require protection should use these helpers at the router layer.
+
+### `src/utils/apiResponse.js`
+
+Standardizes success and error payload structure.
+
+### `src/utils/asyncHandler.js`
+
+Wraps async controllers and forwards thrown errors to Express error middleware.
+
+## Documentation Workflow
+
+Documentation is part of the implementation workflow, not an afterthought.
+
+This project uses:
+
+- JSDoc comments for code-level documentation
+- `swagger-jsdoc` to generate the OpenAPI spec
+- `swagger-ui-express` to serve interactive API documentation
+
+### Documentation rules for developers
+
+When adding or changing a route:
+
+1. update the router
+2. add or update the JSDoc OpenAPI block above the route
+3. make sure the request and response schema are reflected in `src/docs/swagger.js`
+4. update `README.md` if the public API surface changes
+5. update `workFlow.md` if the architectural workflow changes
+
+This keeps implementation and documentation aligned.
+
+## Module Guide
+
+## `auth`
+
+### Purpose
+
+The `auth` module owns user identity and access control.
+
+### Owns
+
+- registration
+- login
+- logout
+- refresh token flow
+- current user lookup
+- reusable auth user creation
+- password hashing
+- password verification
+
+### Does not own
+
+- school onboarding
+- student profile creation
+- teacher profile creation
+- parent profile creation
+- payment flows
+
+### Current flow
+
+Typical auth request:
+
+```text
+router -> controller -> service -> repository -> prisma
+```
+
+Protected route flow:
+
+```text
+router -> authMiddleware -> permit(...) -> controller -> service
+```
+
+### Key rule
+
+`auth` owns the `User` record.
+
+Other modules own the related profile records.
+
+## `school`
+
+### Purpose
+
+The `school` module owns school administration and admin onboarding.
+
+### Owns
+
+- creating school admin profiles
+- school-level admin lookup
+- school-admin onboarding workflows
+
+### Current implementation pattern
+
+When creating an admin:
+
+1. `school.service.js` validates the payload
+2. it calls `createAuthUser(...)` from the `auth` module
+3. it creates the `Admin` profile through the school repository
+4. it emits `school.admin_created`
+5. it returns a safe admin response
+
+### Key rule
+
+`school` does not hash passwords or create raw `User` rows directly.
+
+It delegates identity creation to `auth`.
+
+## `student`
+
+### Purpose
+
+The `student` module owns student-facing domain behavior.
+
+### Owns
+
+- student onboarding
+- student profile creation
+- student retrieval
+- student-specific academic workflows
+
+### Current implementation state
+
+The router/controller/service/repository structure is in place.
+
+The current repository layer is scaffolded and ready to be replaced with full Prisma-backed logic.
+
+### Key rule
+
+If a student needs login access:
+
+1. create the auth identity first
+2. create the student profile second
+
+## `teacher`
+
+### Purpose
+
+The `teacher` module owns teacher profiles and teacher-driven academic operations.
+
+### Owns
+
+- teacher onboarding
+- teacher profile management
+- attendance and grading workflows
+- teaching-session related logic
+
+### Current implementation state
+
+The module structure exists and is protected with admin-only scaffolding routes.
+
+The repository layer can now be expanded into full domain logic.
+
+### Key rule
+
+Teacher business rules stay in `teacher.service.js`, not in middleware or controllers.
+
+## `parent`
+
+### Purpose
+
+The `parent` module owns parent records and parent-student relationships.
+
+### Owns
+
+- parent onboarding
+- parent profile management
+- linking parents to students
+- parent-scoped access rules
+
+### Current implementation state
+
+The module is scaffolded and ready for richer relationship logic using the `StudentParent` model.
+
+### Key rule
+
+Authorization checks for parent access should always happen before returning child-related data.
+
+## `payments`
+
+### Purpose
+
+The `payments` module owns fee and payment workflows.
+
+### Owns
+
+- recording payments
+- listing payments
+- payment summaries
+- finance-related side effects such as receipts or logs
+
+### Current implementation state
+
+The module is scaffolded with protected endpoints and event hooks.
+
+### Key rule
+
+Payment rules belong in the service layer, while persistence belongs in the repository layer.
+
+## Current Route Map
+
+The application currently exposes:
+
+- `GET /health`
+- `GET /api/docs`
+- `GET /api/docs.json`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `POST /api/schools/admins`
+- `GET /api/schools/admins`
+- `GET /api/schools/admins/:email`
+- `GET /api/students`
+- `POST /api/students`
+- `GET /api/teachers`
+- `POST /api/teachers`
+- `GET /api/parents`
+- `POST /api/parents`
+- `GET /api/payments`
+- `POST /api/payments`
+
+The detailed request and response shapes are served from Swagger at `/api/docs`.
+
+## Development Workflow For New Features
+
+When implementing a new feature, use this sequence:
+
+1. Choose the owning module.
+2. Add or update the route in that module.
+3. Add or update the JSDoc route documentation.
+4. Implement the controller.
+5. Implement the service logic.
+6. Implement or update the repository query.
+7. Protect the route with auth if required.
+8. Emit events for non-critical side effects.
+9. Register listeners if those side effects need handlers.
+10. Update `README.md` or this workflow guide if the public behavior or architecture changed.
+
+## Practical Rules
+
+- Keep routers thin.
+- Keep controllers thin.
+- Keep services smart.
+- Keep repositories focused on Prisma.
+- Keep event names centralized.
+- Keep listeners side-effect only.
+- Keep auth focused on identity and access control.
+- Keep public route documentation in JSDoc blocks close to the route definitions.
+- Never duplicate user-creation logic across modules.
+
+## Summary
+
+The project is healthy when these rules are true:
+
+- `auth` owns identity
+- domain modules own business behavior
+- middleware protects routes
+- services enforce rules
+- repositories talk to Prisma
+- listeners handle side effects
+- JSDoc and Swagger stay aligned with the code
+
+If developers follow that structure consistently, the codebase remains predictable, scalable, and easy to extend.
