@@ -90,3 +90,20 @@ let visitModal = document.getElementById('visitModal');
 
 // Open/Close Modal
 modalBtn(visitBtn, visitModal);
+
+// FAQ
+// Initialization of all FAQ section
+let faqSection =  admissionSection.querySelector('.faq');
+let faqDiv = faqSection.querySelectorAll('div');
+
+// EventListener for each div
+faqDiv.forEach((faqDiv) => {
+
+    let faqAnswer = faqDiv.querySelector('p');
+
+    faqDiv.addEventListener('click', () => {
+        faqAnswer.classList.toggle('hidden');
+    });
+});
+// Clicked = Show p
+// OnClick = Hide p
