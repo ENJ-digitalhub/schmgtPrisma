@@ -29,23 +29,23 @@ let facilitiesBtn = document.querySelector('nav button:nth-child(4)');
 let contactBtn = document.querySelector('nav button:nth-child(5)');
 
 //Adding event listeners to buttons
-homeBtn.addEventListener('click', () => {
+homeBtn.addEventListener('pointerdown', () => {
     console.log('Clicked');
     showSection(homeSection);
 });
-aboutBtn.addEventListener('click', () => {
+aboutBtn.addEventListener('pointerdown', () => {
     console.log('Clicked');
     showSection(aboutSection);
 });
-admissionBtn.addEventListener('click', () => {
+admissionBtn.addEventListener('pointerdown', () => {
     console.log('Clicked');
     showSection(admissionSection);
 });
-facilitiesBtn.addEventListener('click', () => {
+facilitiesBtn.addEventListener('pointerdown', () => {
     console.log('Clicked');
     showSection(facilitiesSection);
 });
-contactBtn.addEventListener('click', () => {
+contactBtn.addEventListener('pointerdown', () => {
     console.log('Clicked');
     showSection(contactSection);
 });
@@ -56,7 +56,7 @@ showSection(homeSection);
 
 // Modal Handling function
 function modalBtn(button, modal){
-    button.addEventListener('click', () => {
+    button.addEventListener('pointerdown', () => {
     
         //Show Modal
         modal.classList.remove('hidden');
@@ -66,7 +66,7 @@ function modalBtn(button, modal){
     let x = modal.querySelector('.x');
     
     // Hide Modal
-    x.addEventListener('click', () => {
+    x.addEventListener('pointerdown', () => {
         modal.classList.add('hidden');
     });
 }
@@ -101,7 +101,7 @@ faqDiv.forEach((faqDiv) => {
 
     let faqAnswer = faqDiv.querySelector('p');
 
-    faqDiv.addEventListener('click', () => {
+    faqDiv.addEventListener('pointerdown', () => {
         faqAnswer.classList.toggle('hidden');
     });
 });
