@@ -1,12 +1,26 @@
+// Mobile nav
+// Initialization of Menu Button and Menu
+const menuToggle = document.getElementById('menuToggle');
+const menu = document.querySelector('nav');
+
+// Menu button eventListener
+menuToggle.addEventListener('pointerdown', () => {
+    menu.classList.toggle('hidden');
+});
+
+
 //Sections Initialization
-let homeSection = document.getElementById('home');
-let aboutSection = document.getElementById('aboutUs');
-let admissionSection = document.getElementById('admission');
-let facilitiesSection = document.getElementById('facilities');
-let contactSection = document.getElementById('contact');
+const homeSection = document.getElementById('home');
+const aboutSection = document.getElementById('aboutUs');
+const admissionSection = document.getElementById('admission');
+const facilitiesSection = document.getElementById('facilities');
+const contactSection = document.getElementById('contact');
 
 //Show section function
 function showSection(section) {
+    // Hide Menu
+    menu.classList.toggle('hidden');
+
     //HIdes all section
     homeSection.classList.add('hidden');
     aboutSection.classList.add('hidden');
@@ -22,11 +36,11 @@ function showSection(section) {
 }
 
 //Intilazation of Buttons
-let homeBtn = document.querySelector('nav button:nth-child(1)');
-let aboutBtn = document.querySelector('nav button:nth-child(2)');
-let admissionBtn = document.querySelector('nav button:nth-child(3)');
-let facilitiesBtn = document.querySelector('nav button:nth-child(4)');
-let contactBtn = document.querySelector('nav button:nth-child(5)');
+const homeBtn = document.querySelector('nav button:nth-child(1)');
+const aboutBtn = document.querySelector('nav button:nth-child(2)');
+const admissionBtn = document.querySelector('nav button:nth-child(3)');
+const facilitiesBtn = document.querySelector('nav button:nth-child(4)');
+const contactBtn = document.querySelector('nav button:nth-child(5)');
 
 //Adding event listeners to buttons
 homeBtn.addEventListener('pointerdown', () => {
@@ -54,52 +68,52 @@ contactBtn.addEventListener('pointerdown', () => {
 //Show Home by default
 showSection(homeSection);
 
-// Modal Handling function
-function modalBtn(button, modal){
-    button.addEventListener('pointerdown', () => {
+// Modal Handling
+// Initailization of Modal Buttons
+const applyBtn = admissionSection.querySelector('#applyBtn');
+const visitBtn = admissionSection.querySelector('#visitBtn');
+
+// Initialization of Modals
+const applyModal = document.querySelector('#applyModal');
+const visitModal = document.querySelector('#visitModal');
+
+// Modal "X" button
+function closeModal(modal){
     
-        //Show Modal
-        modal.classList.remove('hidden');
-    });
+    // Initialization of "X"
+    const x = modal.querySelector('.x');
     
-    //Initialization of Modal "X" button
-    let x = modal.querySelector('.x');
-    
-    // Hide Modal
     x.addEventListener('pointerdown', () => {
-        modal.classList.add('hidden');
+        // Modal flex display removed
+        modal.classList.remove('flex');
+
+        // Close dialog
+        modal.close();
     });
 }
 
-//Apply Now (Admission)
-//Initialization of "Apply now" Btn
-let applyBtn = document.getElementById('applyBtn');
+// Adding Event Listener to buttons
+applyBtn.addEventListener('pointerdown', () => {
+    applyModal.classList.add('flex');
+    applyModal.showModal();
+    closeModal(applyModal);
+})
 
-// Initialization of "Apply now" Modal
-let applyModal = document.getElementById('applyModal');
-
-// Open/Close Modal
-modalBtn(applyBtn, applyModal);
-
-//Visit (Admission)
-//Initialization of "Visit" Btn
-let visitBtn = document.getElementById('visitBtn');
-
-// Initialization of "Visit" Modal
-let visitModal = document.getElementById('visitModal');
-
-// Open/Close Modal
-modalBtn(visitBtn, visitModal);
+visitBtn.addEventListener('pointerdown', () => {
+    visitModal.classList.add('flex');
+    visitModal.showModal();
+    closeModal(visitModal);
+})
 
 // FAQ
 // Initialization of all FAQ section
-let faqSection =  admissionSection.querySelector('.faq');
-let faqDiv = faqSection.querySelectorAll('div');
+const faqSection =  admissionSection.querySelector('.faq');
+const faqDiv = faqSection.querySelectorAll('div');
 
 // EventListener for each div
 faqDiv.forEach((faqDiv) => {
 
-    let faqAnswer = faqDiv.querySelector('p');
+    const faqAnswer = faqDiv.querySelector('p');
 
     faqDiv.addEventListener('pointerdown', () => {
         faqAnswer.classList.toggle('hidden');

@@ -43,6 +43,18 @@
     --transition-smooth: ease;
 }
 
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-size: 16px;
+}
+
 div{
     scrollbar-width: none;
 }
