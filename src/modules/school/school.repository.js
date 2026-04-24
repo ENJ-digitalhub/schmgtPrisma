@@ -1,33 +1,58 @@
-import prisma from '../../lib/prisma.js'
+import prisma from "../../lib/prisma.js";
 
-/**
- * Creates a new school admin in the database.
- *
- * @param {Object} payload - Admin data
- * @param {string} payload.email - Admin email
- * @param {string} payload.name - Admin name
- * @param {string} payload.password - Hashed password
- * @returns {Promise<Object>} Created admin record
- */
-
-export async function createAdminRepo(payload) {
-  const admin = await prisma.schoolAdmin.create({
+export async function createAdminProfileRepo(payload) {
+  return prisma.admin.create({
     data: payload,
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
   });
-  return admin;
 }
 
-
-/**
- * Retrieves a school admin by email from the database.
- *
- * @param {string} email - Admin email
- * @returns {Promise<Object|null>} Admin record or null if not found
- */
-export async function getAdminRepo(email) {
-  const admin = await prisma.schoolAdmin.findUnique({
-    where: { email },
+export async function getAdminByEmailRepo(email) {
+  return prisma.admin.findFirst({
+    where: {
+      user: {
+        email,
+      },
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
   });
-  return admin;
 }
 
+export async function listAdminsRepo() {
+  return prisma.admin.findMany({
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+    orderBy: {
+      id: "desc",
+    },
+  });
+}

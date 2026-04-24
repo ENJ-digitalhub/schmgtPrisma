@@ -1,29 +1,30 @@
 # School Management System API
 
-`schmgtPrisma` is a backend school management project built with `Node.js`, `Express`, `Prisma`, and `PostgreSQL`.
+`schmgtPrisma` is a modular backend for a school management platform built with `Node.js`, `Express`, `Prisma`, and `PostgreSQL`.
 
-The aim of the project is to provide a clean and scalable foundation for managing the core operations of a school system, including students, teachers, parents, classes, subjects, attendance, grades, fee payments, and administration.
+The project is designed around feature modules so that authentication, school administration, student management, teacher operations, parent relationships, and payments can evolve independently without turning the codebase into a monolith.
 
-The project is structured as a modular backend so that each feature can grow independently without turning the codebase into a single large, tightly coupled application.
+## Overview
 
-## Project Vision
+The system is intended to support core school workflows such as:
 
-This project is intended to serve as the backend engine for a school management platform.
+- authentication and access control
+- school admin onboarding
+- student, teacher, and parent record management
+- academic operations such as attendance and grading
+- fee payment recording and reporting
 
-It is designed to support real academic and administrative workflows such as:
+The codebase follows a consistent feature workflow:
 
-- school onboarding and administration
-- student record management
-- teacher record management
-- parent-student relationships
-- class and subject organization
-- session-based teaching records
-- attendance tracking
-- grading and academic performance tracking
-- fee payment recording
-- authentication and access control for administrators
+```text
+server -> app -> router -> controller -> service -> repository -> prisma -> database
+```
 
-The long-term idea is to build a backend that is easy to maintain, easy to extend, and reliable enough for real institutional use.
+Side effects follow a separate event-driven path:
+
+```text
+service -> eventBus -> listeners
+```
 
 ## Tech Stack
 
@@ -31,24 +32,79 @@ The long-term idea is to build a backend that is easy to maintain, easy to exten
 - `Express`
 - `Prisma ORM`
 - `PostgreSQL`
-- `dotenv`
 - `cookie-parser`
 - `jsonwebtoken`
 - `bcryptjs`
-- `nodemon`
+- `swagger-jsdoc`
+- `swagger-ui-express`
 
-## Current State
+## Current Architecture
 
-The project currently has:
+The project currently includes these modules under [`src/modules`](/c:/Users/Hp/Documents/schmgtPrisma/src/modules:1):
 
-- Prisma configured and connected through `prisma.config.ts`
-- a database schema defined in [`prisma/schema.prisma`](/abs/path/c:/Users/Hp/Documents/schmgtPrisma/prisma/schema.prisma:1)
-- initial migration files in `prisma/migrations/`
-- Express bootstrap files in [`src/app.js`](/abs/path/c:/Users/Hp/Documents/schmgtPrisma/src/app.js:1) and [`src/server.js`](/abs/path/c:/Users/Hp/Documents/schmgtPrisma/src/server.js:1)
-- shared infrastructure scaffolds for config, Prisma, events, middleware, and utilities
-- a feature-based `school` module implemented under [`src/modules/school`](/abs/path/c:/Users/Hp/Documents/schmgtPrisma/src/modules/school)
+- `auth` for registration, login, refresh, logout, and identity lookup
+- `school` for admin onboarding and school-level administration
+- `student` for student scaffolding and student workflows
+- `teacher` for teacher scaffolding and teaching workflows
+- `parent` for parent scaffolding and parent-student relationships
+- `payments` for fee and payment flows
 
-The runtime layer is still in an early scaffold phase, but the project structure now matches the intended architecture and is ready for feature implementation.
+Shared infrastructure lives under:
+
+- [`src/lib`](/c:/Users/Hp/Documents/schmgtPrisma/src/lib:1) for Prisma, JWT, and event bus utilities
+- [`src/middlewares`](/c:/Users/Hp/Documents/schmgtPrisma/src/middlewares:1) for auth, error, and not-found middleware
+- [`src/utils`](/c:/Users/Hp/Documents/schmgtPrisma/src/utils:1) for common helpers
+- [`src/docs`](/c:/Users/Hp/Documents/schmgtPrisma/src/docs:1) for Swagger/OpenAPI generation
+
+## API Surface
+
+The app currently mounts these route groups:
+
+- `GET /health`
+- `GET /api/docs`
+- `GET /api/docs.json`
+- `/api/auth`
+- `/api/schools`
+- `/api/students`
+- `/api/teachers`
+- `/api/parents`
+- `/api/payments`
+
+Interactive route documentation is available at:
+
+- `http://localhost:5050/api/docs`
+
+The raw generated OpenAPI spec is available at:
+
+- `http://localhost:5050/api/docs.json`
+
+## Authentication Model
+
+Authentication is JWT-based and supports:
+
+- access tokens
+- refresh tokens
+- cookie-based auth flows
+- bearer-token route protection
+- role-based authorization through `permit(...)`
+
+The `User` model is the auth core. Domain-specific profile tables such as `Admin`, `Teacher`, `Student`, and `Parent` are created by their owning modules.
+
+## Documentation
+
+API documentation is generated from JSDoc comments using:
+
+- `swagger-jsdoc`
+- `swagger-ui-express`
+
+That means route documentation stays close to the code instead of drifting into a separate manual document.
+
+Useful commands:
+
+```bash
+npm run dev
+npm run docs:json
+```
 
 ## Project Structure
 
@@ -65,8 +121,13 @@ schmgtPrisma/
     config/
       env.js
 
+    docs/
+      swagger.js
+      print-swagger.js
+
     lib/
       eventBus.js
+      jwt.js
       prisma.js
 
     middlewares/
@@ -75,97 +136,20 @@ schmgtPrisma/
       notFound.js
 
     modules/
+      auth/
       school/
-        school.controller.js
-        school.events.js
-        school.listeners.js
-        school.repository.js
-        school.router.js
-        school.service.js
+      student/
+      teacher/
+      parent/
+      payments/
 
     utils/
       apiResponse.js
       asyncHandler.js
 
-  .env
-  .gitignore
-  package.json
-  package-lock.json
-  prisma.config.ts
   README.md
   workFlow.md
 ```
-
-## Database Domain Coverage
-
-The current Prisma schema already models the key parts of a school system:
-
-- `Teacher`
-- `Student`
-- `Parent`
-- `StudentParent`
-- `Subject`
-- `Class`
-- `ClassSession`
-- `Attendance`
-- `Grade`
-- `FeePayment`
-- `Admin`
-
-This is a strong starting point because it captures both academic operations and administrative records in a connected relational structure.
-
-## Implemented Architecture
-
-The project follows a modular feature workflow where each module is expected to handle a specific domain area and separate responsibilities across:
-
-- `router`
-- `controller`
-- `service`
-- `repository`
-- `listeners`
-- `events`
-
-The current `school` module already reflects this structure and is mounted in the app.
-
-The intended request flow is:
-
-```text
-server -> app -> router -> controller -> service -> repository -> prisma -> database
-```
-
-The intended side-effect flow for event-driven behavior is:
-
-```text
-service -> event bus -> listeners
-```
-
-This design helps keep the codebase organized as the application grows.
-
-## Workflow Documentation
-
-The project workflow and folder philosophy are explained in more detail here:
-
-- [Project Workflow Guide](./workFlow.md)
-
-That document explains:
-
-- why the project is structured the way it is
-- how requests are expected to move through the app
-- how the service and repository layers should work together
-- how `EventEmitter`-based listeners fit into the architecture
-
-## Available Scaffolds
-
-The repository already includes working placeholders for:
-
-- `GET /health` to confirm the API is up
-- `GET /api/v1/schools` for module status
-- `POST /api/v1/schools` for the school creation flow scaffold
-- shared error and not-found middleware
-- a shared event bus
-- a shared Prisma client file
-
-These are lightweight scaffolds meant to establish the shape of the codebase before deeper business logic is added.
 
 ## Setup
 
@@ -177,57 +161,73 @@ npm install
 
 ### 2. Configure environment variables
 
-Create or update your `.env` file with your database connection string and any other required environment values.
-
-Example:
+Create or update `.env` with at least:
 
 ```env
 DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
-PORT=3000
+PORT=5050
+JWT_SECRET_ACCESS_TOKEN="your_access_secret"
+JWT_SECRET_REFRESH_TOKEN="your_refresh_secret"
 ```
 
-### 3. Run Prisma migrations
+### 3. Run database migrations
 
 ```bash
 npx prisma migrate dev
 ```
 
-### 4. Generate Prisma client if needed
+### 4. Generate Prisma client
 
 ```bash
 npx prisma generate
 ```
 
-### 5. Start the development server
+### 5. Start the API
 
 ```bash
 npm run dev
 ```
 
-## Development Direction
+Then open `http://localhost:5050/api/docs` to inspect the generated route documentation.
 
-The next practical milestones for the project are:
+## Database Coverage
 
-- connect repositories to the real Prisma models
-- implement the `school` module beyond placeholder logic
-- add validation for requests and payloads
-- expand modules for `auth`, `student`, `teacher`, and `payments`
-- introduce tests for routes, services, and repositories
-- add authentication and authorization middleware
+The Prisma schema already models the main educational and administrative entities, including:
 
-As the project grows, new modules can follow the same folder pattern already established by the `school` feature.
+- `User`
+- `Admin`
+- `Teacher`
+- `Student`
+- `Parent`
+- `StudentParent`
+- `Subject`
+- `Class`
+- `ClassSession`
+- `Attendance`
+- `Grade`
+- `FeePayment`
 
-## Why This Project Matters
+This gives the project a strong foundation for both academic and operational workflows.
 
-A school management system is more than a CRUD app. It sits at the center of how an institution tracks learning, accountability, communication, and operations.
+## Development Notes
 
-When built well, a system like this can help schools:
+- `auth` owns identity and access control
+- domain modules own business workflows
+- controllers should stay thin
+- services should contain business rules
+- repositories should be the only layer talking to Prisma
+- listeners should only handle side effects
 
-- keep accurate academic records
-- reduce administrative friction
-- improve coordination between staff and parents
-- monitor student performance more effectively
-- track attendance and payments reliably
-- create a stronger operational backbone for growth
+The detailed implementation guide is documented in [workFlow.md](/c:/Users/Hp/Documents/schmgtPrisma/workFlow.md:1).
 
-The importance of this project is that it aims to turn complex school processes into a structured and dependable system. Done properly, it can support better organization, better decisions, and a better educational experience overall.
+## Status
+
+The project now has:
+
+- a feature-based backend structure
+- working auth middleware and role guards
+- modular route scaffolding across all major domains
+- Swagger/OpenAPI documentation generated from JSDoc comments
+- a school-admin onboarding flow wired through `auth` and `school`
+
+Some modules are still scaffold-level in their repository layer and can now be extended cleanly without changing the architecture.

@@ -18,3 +18,16 @@ export async function updateRefreshToken(userId, token) {
 export async function findUserById(id) {
   return prisma.user.findUnique({ where: { id } });
 }
+
+export async function findSafeUserById(id) {
+  return prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+}

@@ -1,13 +1,21 @@
 {
   "name": "schmgtprisma",
   "version": "1.0.0",
-  "description": "`schmgtPrisma` is a backend school management project built with `Node.js`, `Express`, `Prisma`, and `PostgreSQL`.",
+  "description": "Modular school management system backend built with Express, Prisma, PostgreSQL, and JSDoc-powered API documentation.",
   "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon ./src/server.js"
+    "dev": "nodemon ./src/server.js",
+    "docs:json": "node ./src/docs/print-swagger.js"
   },
-  "keywords": [],
+  "keywords": [
+    "school-management",
+    "express",
+    "prisma",
+    "postgresql",
+    "swagger",
+    "jsdoc"
+  ],
   "author": "",
   "license": "ISC",
   "type": "module",
@@ -20,20 +28,11 @@
     "jsonwebtoken": "^9.0.3",
     "nodemon": "^3.1.14",
     "prisma": "^6.19.3",
-    "tailwind-scrollbar-hide": "^4.0.0"
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ENJ-digitalhub/schmgtPrisma.git"
-  },
-  "bugs": {
-    "url": "https://github.com/ENJ-digitalhub/schmgtPrisma/issues"
-  },
-  "homepage": "https://github.com/ENJ-digitalhub/schmgtPrisma#readme",
   "devDependencies": {
-    "@tailwindcss/cli": "^4.2.4",
-    "autoprefixer": "^10.5.0",
-    "postcss": "^8.5.10",
-    "tailwindcss": "^4.2.4"
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8"
   }
 }
