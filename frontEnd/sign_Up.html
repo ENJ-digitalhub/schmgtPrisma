@@ -3,41 +3,168 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Page Title</title>
-    <link rel="stylesheet" href="main.css" />
+    <title>School Auth Console</title>
+    <link rel="stylesheet" href="/frontEnd/main.css" />
   </head>
   <body>
-    <header>
-      <h2>brand Name</h2>
-      <form action="" id="searchForm">
-        <input
-          placeholder="search feature"
-          itemid="search"
-          type="search"
-          name=""
-          id=""
-        />
-      </form>
-    </header>
-    <form id="signUpForm">
-      <h1>Login</h1>
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <input type="text" id="role" placeholder="role" required />
-      <div>
-        <!-- <input type="submit" value="signin with your account"> -->
-        <select name="role" id="role" name="role">
-          <option disabled value="">select role</option>
-          <option value="" style="color: grey">select role:</option>
-          <option value="">Admin</option>
-          <option value="">Teacher</option>
-          <option value="">Student</option>
-          <option value="">Parent</option>
-        </select>
-        <span style="color: red">...foregot password</span>
-      </div>
-      <input id="submit" type="submit" Sign Up />
-    </form>
-    <script src="../"></script>
+    <main class="page-shell">
+      <section class="hero-panel">
+        <p class="eyebrow">School Management System</p>
+        <h1>Test your auth flow from one polished screen.</h1>
+        <p class="hero-copy">
+          Register a user, sign in, inspect the active session, refresh tokens,
+          and log out against the live backend without leaving the browser.
+        </p>
+
+        <div class="hero-stats">
+          <article>
+            <strong>4</strong>
+            <span>Supported roles</span>
+          </article>
+          <article>
+            <strong>JWT</strong>
+            <span>Cookie-aware session flow</span>
+          </article>
+          <article>
+            <strong>Live</strong>
+            <span>Talks to `/api/auth/*`</span>
+          </article>
+        </div>
+
+        <label class="field api-field" for="apiBaseUrl">
+          <span>API base URL</span>
+          <input
+            type="url"
+            id="apiBaseUrl"
+            value="http://localhost:5000"
+            spellcheck="false"
+          />
+        </label>
+
+        <p class="helper-copy">
+          Requests are sent with credentials enabled, so cookie-based endpoints
+          like <code>/me</code>, <code>/refresh</code>, and
+          <code>/logout</code> work here too. For the smoothest signup flow,
+          open this page through <code>/auth-console</code> on the backend
+          server.
+        </p>
+
+        <div class="session-actions">
+          <button type="button" data-session-action="me">
+            Current User
+          </button>
+          <button type="button" data-session-action="refresh">
+            Refresh Token
+          </button>
+          <button type="button" data-session-action="logout">
+            Log Out
+          </button>
+        </div>
+      </section>
+
+      <section class="workspace-panel">
+        <div class="panel-grid">
+          <form id="loginForm" class="auth-card">
+            <div class="card-head">
+              <p class="card-kicker">Returning user</p>
+              <h2>Log In</h2>
+            </div>
+
+            <label class="field" for="loginEmail">
+              <span>Email</span>
+              <input
+                type="email"
+                id="loginEmail"
+                name="email"
+                placeholder="admin@school.com"
+                required
+              />
+            </label>
+
+            <label class="field" for="loginPassword">
+              <span>Password</span>
+              <input
+                type="password"
+                id="loginPassword"
+                name="password"
+                placeholder="StrongPassword123"
+                required
+              />
+            </label>
+
+            <button type="submit" class="primary-action">Log In</button>
+          </form>
+
+          <form id="registerForm" class="auth-card">
+            <div class="card-head">
+              <p class="card-kicker">New identity</p>
+              <h2>Register</h2>
+            </div>
+
+            <label class="field" for="registerName">
+              <span>Name</span>
+              <input
+                type="text"
+                id="registerName"
+                name="name"
+                placeholder="Jane Doe"
+              />
+            </label>
+
+            <label class="field" for="registerEmail">
+              <span>Email</span>
+              <input
+                type="email"
+                id="registerEmail"
+                name="email"
+                placeholder="jane@school.com"
+                required
+              />
+            </label>
+
+            <label class="field" for="registerPassword">
+              <span>Password</span>
+              <input
+                type="password"
+                id="registerPassword"
+                name="password"
+                placeholder="StrongPassword123"
+                required
+              />
+            </label>
+
+            <label class="field" for="registerRole">
+              <span>Role</span>
+              <select id="registerRole" name="role" required>
+                <option value="">Select a role</option>
+                <option value="ADMIN">Admin</option>
+                <option value="TEACHER">Teacher</option>
+                <option value="STUDENT">Student</option>
+                <option value="PARENT">Parent</option>
+              </select>
+            </label>
+
+            <button type="submit" class="secondary-action">
+              Create Account
+            </button>
+          </form>
+        </div>
+
+        <section class="response-card" aria-live="polite">
+          <div class="response-bar">
+            <div>
+              <p class="card-kicker">Response console</p>
+              <strong id="responseStatus">Waiting for a request</strong>
+            </div>
+            <button type="button" id="clearResponse" class="clear-action">
+              Clear
+            </button>
+          </div>
+
+          <pre id="responseOutput">No request sent yet.</pre>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="/frontEnd/auth.js"></script>
   </body>
 </html>

@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import cookieParser from 'cookie-parser';
 import { mountApiDocs } from './docs/swagger.js';
 import authRouter from './modules/auth/auth.router.js';
@@ -10,10 +12,15 @@ import teacherRouter from './modules/teacher/teacher.router.js';
 import { notFound } from './middlewares/notFound.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontEndDir = path.resolve(__dirname, '../frontEnd');
+
 const app = express();
 
 app.use(cookieParser());
 app.use(express.json());
+app.use('/frontEnd', express.static(frontEndDir));
 mountApiDocs(app);
 
 
@@ -39,6 +46,14 @@ app.get('/health', (req, res) => {
     success: true,
     message: 'API is healthy',
   });
+});
+
+app.get('/', (req, res) => {
+  res.redirect('/auth-console');
+});
+
+app.get('/auth-console', (req, res) => {
+  res.sendFile(path.join(frontEndDir, 'sign_Up.html'));
 });
 
 app.use('/api/auth', authRouter);
