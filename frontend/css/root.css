@@ -50,7 +50,7 @@
 }
 
 body{
-    background: var(--bg-main);
+    background: var(--bg-light);
     color: var(--text-main);
     font-size: 16px;
 }
