@@ -1,6 +1,8 @@
-import eventBus from '../../lib/eventBus.js';
-import { SCHOOL_EVENTS } from './school.events.js';
+import eventBus from "../../lib/eventBus.js";
+import { SCHOOL_EVENTS } from "./school.events.js";
 
-eventBus.on(SCHOOL_EVENTS.CREATED, (school) => {
-  console.log(`School created event received for ${school.name}`);
+eventBus.on(SCHOOL_EVENTS.ADMIN_CREATED, (admin) => {
+  console.log(
+    `School event: admin created for ${admin.user.email} at ${admin.schoolName}`
+  );
 });

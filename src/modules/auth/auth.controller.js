@@ -1,15 +1,39 @@
 import {
-  register,
+  getCurrentUser,
   login,
-  refreshToken,
   logout,
-} from "./auth.service.js";
+  refreshToken,
+  register,
+} from './auth.service.js';
+import { env } from '../../config/env.js';
+import { apiResponse } from '../../utils/apiResponse.js';
+import { asyncHandler } from '../../utils/asyncHandler.js';
 
+const isProduction = env.nodeEnv === 'production';
+const baseCookieOptions = {
+  httpOnly: true,
+  path: '/',
+  sameSite: isProduction ? 'strict' : 'lax',
+  secure: isProduction,
+};
+const accessTokenCookieOptions = {
+  ...baseCookieOptions,
+  maxAge: 15 * 60 * 1000,
+};
+const refreshTokenCookieOptions = {
+  ...baseCookieOptions,
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
-import { apiResponse } 
-        from "../../utils/apiResponse.js";
-import { asyncHandler } 
-        from "../../utils/asyncHandler.js";
+function setAuthCookies(res, accessToken, refreshTokenValue) {
+  res.cookie('accessToken', accessToken, accessTokenCookieOptions);
+  res.cookie('refreshToken', refreshTokenValue, refreshTokenCookieOptions);
+}
+
+function clearAuthCookies(res) {
+  res.clearCookie('accessToken', baseCookieOptions);
+  res.clearCookie('refreshToken', baseCookieOptions);
+}
 
 
 /**
@@ -19,23 +43,11 @@ export const registerController = asyncHandler(async (req, res) => {
   const { user, accessToken, refreshToken: rToken } =
     await register(req.body);
 
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 15 * 60 * 1000,
-  });
-
-  res.cookie("refreshToken", rToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  setAuthCookies(res, accessToken, rToken);
 
   res.json(
     apiResponse({
-      message: "User registered successfully",
+      message: 'User registered successfully',
       data: user,
     })
   );
@@ -48,46 +60,29 @@ export const loginController = asyncHandler(async (req, res) => {
   const { user, accessToken, refreshToken: rToken } =
     await login(req.body);
 
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 15 * 60 * 1000,
-  });
-
-  res.cookie("refreshToken", rToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  setAuthCookies(res, accessToken, rToken);
 
   res.json(
     apiResponse({
-      message: "Login successful",
+      message: 'Login successful',
       data: user,
     })
   );
 });
 
 /**
- * REFRESH TOKEN
+ * 
  */
 export const refreshController = asyncHandler(async (req, res) => {
   const token = req.cookies.refreshToken;
 
   const { accessToken } = await refreshToken(token);
 
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 15 * 60 * 1000,
-  });
+  res.cookie('accessToken', accessToken, accessTokenCookieOptions);
 
   res.json(
     apiResponse({
-      message: "Token refreshed successfully",
+      message: 'Token refreshed successfully',
     })
   );
 });
@@ -98,12 +93,22 @@ export const refreshController = asyncHandler(async (req, res) => {
 export const logoutController = asyncHandler(async (req, res) => {
   await logout(req.user.id);
 
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  clearAuthCookies(res);
 
   res.json(
     apiResponse({
-      message: "Logged out successfully",
+      message: 'Logged out successfully',
+    })
+  );
+});
+
+export const currentUserController = asyncHandler(async (req, res) => {
+  const user = await getCurrentUser(req.user.id);
+
+  res.json(
+    apiResponse({
+      message: 'Current user fetched successfully',
+      data: user,
     })
   );
 });
